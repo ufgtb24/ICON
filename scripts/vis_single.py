@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/home/yu/AMirror/ICON')
+
 from lib.dataset.mesh_util import projection, load_calib, get_visibility
 from lib.renderer.mesh import load_fit_body
 import argparse
@@ -44,7 +47,7 @@ for y in range(0, 360, 360 // rotation):
     if not os.path.exists(vis_file):
 
         calib = load_calib(calib_file).cuda()
-        calib_verts = projection(smpl_verts, calib, format='tensor')
+        calib_verts = projection(smpl_verts, calib)
         (xy, z) = calib_verts.split([2, 1], dim=1)
         smpl_vis = get_visibility(xy, z, smpl_faces)
 

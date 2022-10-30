@@ -13,6 +13,8 @@
 # for Intelligent Systems. All rights reserved.
 #
 # Contact: ps-license@tuebingen.mpg.de
+# import sys
+# sys.path.append('/home/yu/AMirror/ICON')
 
 import numpy as np
 import cv2

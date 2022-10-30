@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/home/yu/AMirror/ICON')
+
 import lib.renderer.opengl_util as opengl_util
 from lib.renderer.mesh import load_fit_body, load_scan, compute_tangent, load_ori_fit_body
 import lib.renderer.prt_util as prt_util
@@ -15,7 +18,7 @@ import math
 import time
 import trimesh
 from matplotlib import cm
-
+# input()
 t0 = time.time()
 
 parser = argparse.ArgumentParser()
@@ -249,3 +252,4 @@ all_jobs = len(os.listdir(f"./data/{dataset}/scans"))
 print(
     f"Finish rendering {subject}| {done_jobs}/{all_jobs} | Time: {(time.time()-t0):.0f} secs"
 )
+
