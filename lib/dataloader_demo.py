@@ -3,7 +3,7 @@ from lib.common.config import get_cfg_defaults
 from lib.dataset.PIFuDataset import PIFuDataset
 
 if __name__ == '__main__':
-
+    input()
     parser = argparse.ArgumentParser()
     parser.add_argument('-v',
                         '--show',

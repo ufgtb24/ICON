@@ -59,7 +59,7 @@ _C.clean_mesh = True
 _C.remesh = False
 
 _C.batch_size = 4
-_C.num_threads = 8
+_C.num_threads = 5
 
 _C.num_epoch = 10
 _C.freq_plot = 0.01

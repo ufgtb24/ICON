@@ -162,7 +162,7 @@ class PIFuDataset():
 
             if osp.exists(split_txt):
                 print(f"load from {split_txt}")
-                subject_list += np.loadtxt(split_txt, dtype=str).tolist()
+                subject_list += [dataset+ "/" + item for item in np.loadtxt(split_txt, dtype=str)]
             else:
                 full_txt = osp.join(self.root, dataset, 'all.txt')
                 print(f"split {full_txt} into train/val/test")
