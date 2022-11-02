@@ -39,14 +39,14 @@ if __name__ == '__main__':
     # dataset sampler
     dataset = PIFuDataset(args, split='test', vis=args_c.show)
     print(f"Number of subjects :{len(dataset.subject_list)}")
-    data_dict = dataset[1]
-
-    if args_c.list:
-        for k in data_dict.keys():
-            if not hasattr(data_dict[k], "shape"):
-                print(f"{k}: {data_dict[k]}")
-            else:
-                print(f"{k}: {data_dict[k].shape}")
+    # data_dict = dataset[1]
+    #
+    # if args_c.list:
+    #     for k in data_dict.keys():
+    #         if not hasattr(data_dict[k], "shape"):
+    #             print(f"{k}: {data_dict[k]}")
+    #         else:
+    #             print(f"{k}: {data_dict[k].shape}")
 
     if args_c.show:
         # for item in dataset:

@@ -1,6 +1,6 @@
 import sys
 sys.path.append('/home/yu/AMirror/ICON')
-
+# generate renderimage and normal from different cam rotation, and record normalization and rotation to calib
 import lib.renderer.opengl_util as opengl_util
 from lib.renderer.mesh import load_fit_body, load_scan, compute_tangent, load_ori_fit_body
 import lib.renderer.prt_util as prt_util
@@ -18,7 +18,7 @@ import math
 import time
 import trimesh
 from matplotlib import cm
-# input()
+input()
 t0 = time.time()
 
 parser = argparse.ArgumentParser()
@@ -79,6 +79,7 @@ else:
 # center
 
 scan_scale = 1.8 / (vertices.max(0)[up_axis] - vertices.min(0)[up_axis])
+# cm 单位
 rescale_fitted_body, joints = load_fit_body(fit_file,
                                             scale,
                                             smpl_type='smplx',
@@ -88,6 +89,7 @@ os.makedirs(os.path.dirname(smplx_file), exist_ok=True)
 ori_smplx = load_ori_fit_body(fit_file, smpl_type='smplx', smpl_gender='male')
 ori_smplx.export(smplx_file)
 
+# 变成 cm 单位
 vertices *= scale
 vmin = vertices.min(0)
 vmax = vertices.max(0)
@@ -252,4 +254,3 @@ all_jobs = len(os.listdir(f"./data/{dataset}/scans"))
 print(
     f"Finish rendering {subject}| {done_jobs}/{all_jobs} | Time: {(time.time()-t0):.0f} secs"
 )
-

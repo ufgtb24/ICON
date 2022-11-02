@@ -1,6 +1,6 @@
 import sys
 sys.path.append('/home/yu/AMirror/ICON')
-
+# generate visible mask of smpl vertex for different calib(rotation)
 from lib.dataset.mesh_util import projection, load_calib, get_visibility
 from lib.renderer.mesh import load_fit_body
 import argparse
@@ -9,7 +9,7 @@ import time
 import trimesh
 import torch
 import glob
-
+input()
 t0 = time.time()
 
 parser = argparse.ArgumentParser()
