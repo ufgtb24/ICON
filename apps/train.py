@@ -15,7 +15,7 @@ import os.path as osp
 import argparse
 import torch
 import numpy as np
-
+input()
 logging.getLogger("lightning").setLevel(logging.ERROR)
 
 

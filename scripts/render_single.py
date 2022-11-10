@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/home/yu/AMirror/ICON')
+# generate renderimage and normal from different cam rotation, and record normalization and rotation to calib
 import lib.renderer.opengl_util as opengl_util
 from lib.renderer.mesh import load_fit_body, load_scan, compute_tangent, load_ori_fit_body
 import lib.renderer.prt_util as prt_util

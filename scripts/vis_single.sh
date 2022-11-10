@@ -24,7 +24,7 @@ if [[ $MODE == "debug" ]]; then
     mkdir -p $SAVE_DIR
 
     if [[ $DATASET == "thuman2" ]]; then
-        SUBJECT="0499"
+        SUBJECT="0001"
         echo "Visibility $DATASET $SUBJECT"
     fi
 
