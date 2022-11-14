@@ -176,7 +176,8 @@ class ICON(pl.LightningModule):
         return [optimizer_G], [scheduler_G]
 
     def training_step(self, batch, batch_idx):
-
+        print(f'into pid : {os.getpid()}')
+        input()
         if not self.cfg.fast_dev:
             export_cfg(self.logger, self.cfg)
 

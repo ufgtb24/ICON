@@ -15,6 +15,7 @@ dataset:
 net:
   in_nml: (('image',3), ('T_normal_F',3), ('T_normal_B',3))
 
+automatic_optimization: False
 lr_N: 1e-4
 weight_decay: 0.0 
 momentum: 0.0
@@ -28,7 +29,6 @@ resume: False
 test_mode: False
 num_sanity_val_steps: 1
 
-momentum: 0.0 
 optim: Adam
 
 # training (batch=4, set=agora, rot-6)

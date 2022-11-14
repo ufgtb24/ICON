@@ -1,5 +1,7 @@
 import logging
 from pytorch_lightning.callbacks import LearningRateMonitor
+from pytorch_lightning.utilities.model_summary import ModelSummary
+
 from lib.dataset.NormalModule import NormalModule
 from apps.Normal import Normal
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -11,6 +13,9 @@ import os.path as osp
 import argparse
 import torch
 import numpy as np
+
+# print(f'train-normal pid : {os.getpid()}')
+# input()
 
 logging.getLogger("lightning").setLevel(logging.ERROR)
 
@@ -56,21 +61,19 @@ if __name__ == "__main__":
     trainer_kwargs = {
         "gpus": cfg.gpus,
         "auto_select_gpus": True,
-        "reload_dataloaders_every_epoch": True,
+        "reload_dataloaders_every_n_epochs": 1,
         "sync_batchnorm": True,
         "benchmark": True,
         "logger": tb_logger,
         "track_grad_norm": -1,
-        "automatic_optimization": False,
         "num_sanity_val_steps": cfg.num_sanity_val_steps,
-        "checkpoint_callback": checkpoint,
         "limit_train_batches": cfg.dataset.train_bsize,
         "limit_val_batches": cfg.dataset.val_bsize if not cfg.overfit else 0.001,
         "limit_test_batches": cfg.dataset.test_bsize if not cfg.overfit else 0.0,
         "profiler": None,
         "fast_dev_run": cfg.fast_dev,
         "max_epochs": cfg.num_epoch,
-        "callbacks": [LearningRateMonitor(logging_interval="step")],
+        "callbacks": [LearningRateMonitor(logging_interval="step"),checkpoint],
     }
 
     datamodule = NormalModule(cfg)
@@ -101,7 +104,9 @@ if __name__ == "__main__":
         cfg.merge_from_list(cfg_show_list)
 
     model = Normal(cfg)
-
+    summary = ModelSummary(model, max_depth=-1)
+    print(summary)
+    
     trainer = pl.Trainer(**trainer_kwargs)
 
     if (
