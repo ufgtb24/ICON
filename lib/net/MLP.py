@@ -58,7 +58,7 @@ class MLP(pl.LightningModule):
         tmpy = feature
 
         for i, f in enumerate(self.filters):
-
+            # print(f'{i} layer of MLP: ', y.shape)
             y = f(y if i not in self.res_layers else torch.cat([y, tmpy], 1))
             if i != len(self.filters) - 1:
                 if self.norm not in ['batch', 'group', 'instance']:

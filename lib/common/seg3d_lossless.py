@@ -209,7 +209,7 @@ class Seg3dLossless(nn.Module):
                 with torch.no_grad():
                     # here true is correct!
                     valid = F.interpolate(
-                        (occupancys > self.balance_value).float(),
+                        (occupancys > self.balance_value).float(), # 01二值化，在插值，产生01之间的边缘
                         size=(D, H, W),
                         mode="trilinear",
                         align_corners=True)
@@ -220,9 +220,9 @@ class Seg3dLossless(nn.Module):
                                            mode="trilinear",
                                            align_corners=True)
 
-                is_boundary = (valid > 0.0) & (valid < 1.0)
+                is_boundary = (valid > 0.0) & (valid < 1.0)  # occupy 0 1 之间的模糊点
 
-                with torch.no_grad():
+                with torch.no_grad():  # 降噪，找到边界线
                     if torch.equal(resolution, self.resolutions[1]):
                         is_boundary = (self.smooth_conv9x9(is_boundary.float())
                                        > 0)[0, 0]
@@ -236,7 +236,7 @@ class Seg3dLossless(nn.Module):
                     coords_accum = coords_accum.long()
                     is_boundary[coords_accum[0, :, 2], coords_accum[0, :, 1],
                                 coords_accum[0, :, 0]] = False
-                    point_coords = is_boundary.permute(
+                    point_coords = is_boundary.permute( # 提取边界线
                         2, 1, 0).nonzero(as_tuple=False).unsqueeze(0)
                     point_indices = (point_coords[:, :, 2] * H * W +
                                      point_coords[:, :, 1] * W +
@@ -245,17 +245,17 @@ class Seg3dLossless(nn.Module):
                     R, C, D, H, W = occupancys.shape
 
                     # inferred value
-                    coords = point_coords * stride
+                    coords = point_coords * stride  # 格子坐标* 每格长度 = 位置坐标  0~512
 
                 if coords.size(1) == 0:
                     continue
-                occupancys_topk = self.batch_eval(coords, **kwargs)
+                occupancys_topk = self.batch_eval(coords, **kwargs) # 对上一步粗分辨率插值的细化位置进行推理，减少推理时间
 
                 # put mask point predictions to the right places on the upsampled grid.
                 R, C, D, H, W = occupancys.shape
                 point_indices = point_indices.unsqueeze(1).expand(-1, C, -1)
                 occupancys = (occupancys.reshape(R, C, D * H * W).scatter_(
-                    2, point_indices, occupancys_topk).view(R, C, D, H, W))
+                    2, point_indices, occupancys_topk).view(R, C, D, H, W)) #对occupancy 模糊边界线进行赋值
 
                 with torch.no_grad():
                     voxels = coords / stride

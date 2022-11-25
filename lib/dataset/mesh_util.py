@@ -365,12 +365,12 @@ def cal_sdf_batch(verts, faces, cmaps, vis, points):
     Bsize = points.shape[0]
 
     normals = Meshes(verts, faces).verts_normals_padded()
-
+    # 根据 smpl faces 的索引值，获得对应 triangle 的内容值
     triangles = face_vertices(verts, faces)
     normals = face_vertices(normals, faces)
     cmaps = face_vertices(cmaps, faces)
     vis = face_vertices(vis, faces)
-
+    # 8000个采样点到smpl mesh 的最近距离residues 和 smpl上的对应 triangle 索引 pts_ind
     residues, pts_ind, _ = point_to_mesh_distance(points, triangles)
     closest_triangles = torch.gather(
         triangles, 1, pts_ind[:, :, None, None].expand(-1, -1, 3, 3)).view(-1, 3, 3)

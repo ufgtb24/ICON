@@ -14,7 +14,7 @@
 # for Intelligent Systems. All rights reserved.
 #
 # Contact: ps-license@tuebingen.mpg.de
-
+import os
 
 from lib.renderer.mesh import load_fit_body
 from lib.dataset.hoppeMesh import HoppeMesh
@@ -112,7 +112,7 @@ class PIFuDataset():
             }
 
         self.subject_list = self.get_subject_list(split)
-        self.smplx = SMPLX()
+        self.smplx = SMPLX()  # 没有参数的模板 存放在 smp_related
 
         # PIL to tensor
         self.image_to_tensor = transforms.Compose([
@@ -178,6 +178,8 @@ class PIFuDataset():
         return len(self.subject_list) * len(self.rotations)
 
     def __getitem__(self, index):
+        # print(f'icon get_data pid : {os.getpid()}')
+        # input()
 
         # only pick the first data if overfitting
         if self.overfit:
@@ -223,10 +225,10 @@ class PIFuDataset():
                     data_dict[f'{name}_path'], channel, inv=False)
             })
 
-        data_dict.update(self.load_mesh(data_dict))
-        data_dict.update(self.get_sampling_geo(
+        data_dict.update(self.load_mesh(data_dict))  # rotated when generation
+        data_dict.update(self.get_sampling_geo(  # need rotate space sample inside
             data_dict, is_valid=self.split == "val", is_sdf=self.use_sdf))
-        data_dict.update(self.load_smpl(data_dict, self.vis))
+        data_dict.update(self.load_smpl(data_dict, self.vis)) # need rotate inside
 
         if self.prior_type == 'pamir':
             data_dict.update(self.load_smpl_voxel(data_dict))
@@ -323,7 +325,7 @@ class PIFuDataset():
 
         dataset = data_dict['dataset']
         smplx_dict = {}
-
+        # fit 扫描模型的 smplx param 路径， 存放在 thuman2
         smplx_param = np.load(data_dict['smplx_path'], allow_pickle=True)
         smplx_pose = smplx_param["body_pose"]  # [1,63]
         smplx_betas = smplx_param["betas"]  # [1,10]
@@ -400,7 +402,7 @@ class PIFuDataset():
         return verts, faces, pad_v_num, pad_f_num
 
     def load_smpl(self, data_dict, vis=False):
-
+        # 根据 pose 获得变形的顶点
         smplx_verts, smplx_dict = self.compute_smpl_verts(
             data_dict, self.noise_type,
             self.noise_scale)  # compute using smpl model
@@ -481,6 +483,8 @@ class PIFuDataset():
         }
 
     def get_sampling_geo(self, data_dict, is_valid=False, is_sdf=False):
+        # print(f'get_sampling_geo pid : {os.getpid()}')
+        # input()
 
         mesh = data_dict['mesh']
         calib = data_dict['calib']
@@ -515,7 +519,7 @@ class PIFuDataset():
         # Uniform samples in [-1, 1]
         calib_inv = np.linalg.inv(calib)
         n_samples_space = self.opt.num_sample_geo // 4
-        samples_space_img = 2.0 * np.random.rand(n_samples_space, 3) - 1.0
+        samples_space_img = 2.0 * np.random.rand(n_samples_space, 3) - 1.0  # 标准化到 [-1,1]，为了采样
         samples_space = projection(samples_space_img, calib_inv)
 
         # z-ray direction samples

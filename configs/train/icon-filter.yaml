@@ -29,6 +29,7 @@ dataset:
   scales: [100.0]
 
 net:
+#  mlp_dim: [256,128, 1]
   mlp_dim: [256, 512, 256, 128, 1]
   res_layers: [2,3,4]
   num_stack: 2
@@ -48,12 +49,11 @@ net:
   voxel_dim: 32
   smpl_dim: 7
 
-precision: 16
+#precision: 16
 lr_G: 1e-4
 weight_decay: 0.0 
-momentum: 0.0
-batch_size: 1
-num_threads: 1
+batch_size: 4
+num_threads: 4
 gpus: [0]
 test_gpus: [0]
 sdf: False

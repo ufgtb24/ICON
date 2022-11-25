@@ -14,7 +14,7 @@
 # for Intelligent Systems. All rights reserved.
 #
 # Contact: ps-license@tuebingen.mpg.de
-
+import os
 import random
 import os.path as osp
 import numpy as np
@@ -116,6 +116,8 @@ class NormalDataset():
         return len(self.subject_list) * len(self.rotations)
 
     def __getitem__(self, index):
+        # print(f'normal get_data pid : {os.getpid()}')
+        # input()
 
         # only pick the first data if overfitting
         if self.overfit:

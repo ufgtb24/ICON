@@ -14,13 +14,13 @@ import argparse
 import torch
 import numpy as np
 
-# print(f'train-normal pid : {os.getpid()}')
-# input()
 
 logging.getLogger("lightning").setLevel(logging.ERROR)
 
 if __name__ == "__main__":
-
+    # print(f'train-normal pid : {os.getpid()}')
+    # input()
+    
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-cfg", "--config_file", type=str, help="path of the yaml config file"

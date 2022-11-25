@@ -1,3 +1,4 @@
+from pytorch_lightning.utilities.model_summary import ModelSummary
 import logging
 from pytorch_lightning.core.lightning import LightningModule
 from pytorch_lightning.utilities.cloud_io import atomic_save
@@ -61,7 +62,14 @@ class SubTrainer(pl.Trainer):
 
 
 if __name__ == "__main__":
-
+    
+    print(f'main pid : {os.getpid()}')
+    input()
+    
+    # import torch
+    # torch.cuda.empty_cache()
+    
+    
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-cfg", "--config_file", type=str, help="path of the yaml config file"
@@ -91,7 +99,7 @@ if __name__ == "__main__":
         save_top_k=save_k,
         verbose=False,
         save_weights_only=True,
-        monitor="val/avgloss",
+        monitor="avgloss",
         mode="min",
         filename="{epoch:02d}",
     )
@@ -138,8 +146,10 @@ if __name__ == "__main__":
         val_len = datamodule.data_size["val"]
         trainer_kwargs.update(
             {
-                "log_every_n_steps": int(cfg.freq_plot * train_len / cfg.batch_size),
-                "val_check_interval": int(freq_eval * train_len / cfg.batch_size)
+                "log_every_n_steps": 50,
+                "val_check_interval": 1
+                # "log_every_n_steps": int(cfg.freq_plot * train_len / cfg.batch_size),
+                # "val_check_interval": int(freq_eval * train_len / cfg.batch_size)
                 if freq_eval > 10
                 else freq_eval,
             }
@@ -158,6 +168,8 @@ if __name__ == "__main__":
         cfg.merge_from_list(cfg_show_list)
 
     model = ICON(cfg)
+    # summary = ModelSummary(model, max_depth=-1)
+    # print(summary)
 
     trainer = SubTrainer(**trainer_kwargs)
 

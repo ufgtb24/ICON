@@ -176,8 +176,8 @@ class ICON(pl.LightningModule):
         return [optimizer_G], [scheduler_G]
 
     def training_step(self, batch, batch_idx):
-        print(f'into pid : {os.getpid()}')
-        input()
+        # print(f'train step pid : {os.getpid()}')
+        # input()
         if not self.cfg.fast_dev:
             export_cfg(self.logger, self.cfg)
 
@@ -222,10 +222,10 @@ class ICON(pl.LightningModule):
         tf_log = tf_log_convert(metrics_log)
         bar_log = bar_log_convert(metrics_log)
 
-        if batch_idx % int(self.cfg.freq_show_train) == 0:
-
-            with torch.no_grad():
-                self.render_func(in_tensor_dict, dataset="train")
+        # if batch_idx % int(self.cfg.freq_show_train) == 0:
+        #
+        #     with torch.no_grad():
+        #         self.render_func(in_tensor_dict, dataset="train")
 
         metrics_return = {
             k.replace("train_", ""): torch.tensor(v) for k, v in metrics_log.items()
@@ -286,9 +286,9 @@ class ICON(pl.LightningModule):
             use_sdf=self.cfg.sdf,
         )
 
-        if batch_idx % int(self.cfg.freq_show_val) == 0:
-            with torch.no_grad():
-                self.render_func(in_tensor_dict, dataset="val", idx=batch_idx)
+        # if batch_idx % int(self.cfg.freq_show_val) == 0:
+        #     with torch.no_grad():
+        #         self.render_func(in_tensor_dict, dataset="val", idx=batch_idx)
 
         metrics_return = {
             "val_loss": error_G,
@@ -699,7 +699,7 @@ class ICON(pl.LightningModule):
 
         self.netG.eval()
         features, inter = self.netG.filter(in_tensor_dict, return_inter=True)
-        sdf = self.reconEngine(
+        sdf = self.reconEngine( # 推理 512 512 512 体积块的 occupancy
             opt=self.cfg, netG=self.netG, features=features, proj_matrix=None
         )
 

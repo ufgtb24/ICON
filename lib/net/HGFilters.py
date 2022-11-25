@@ -80,6 +80,7 @@ class HourGlass(nn.Module):
 
 
 class HGFilter(nn.Module):
+    # Stack Hourglass Network  https://zhuanlan.zhihu.com/p/45002720
     def __init__(self, opt, num_modules, in_dim):
         super(HGFilter, self).__init__()
         self.num_modules = num_modules

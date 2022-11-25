@@ -207,13 +207,13 @@ class HGPIFuNet(BasePIFuNet):
         store all intermediate features.
         :param images: [B, C, H, W] input images
         '''
-
+        # f b normal concat
         in_filter = self.get_normal(in_tensor_dict)
 
         features_G = []
-
         if self.prior_type == 'icon':
             if self.use_filter:
+                # 输入 f_normal，经过 stacked hourglass, 输出temperal output, https://zhuanlan.zhihu.com/p/45002720
                 features_F = self.F_filter(in_filter[:,
                                                      self.channels_filter[0]]
                                            )  # [(B,hg_dim,128,128) * 4]
@@ -236,7 +236,7 @@ class HGPIFuNet(BasePIFuNet):
         if self.prior_type == 'icon':
             self.smpl_feat_dict = {
                 k: in_tensor_dict[k]
-                for k in self.icon_keys
+                for k in self.icon_keys  # 除了 smpl_verts，其他都是模板
             }
         elif self.prior_type == "pamir":
             self.smpl_feat_dict = {
@@ -270,7 +270,7 @@ class HGPIFuNet(BasePIFuNet):
         xyz = self.projection(points, calibs, transforms)
 
         (xy, z) = xyz.split([2, 1], dim=1)
-
+        # 选取数据边界
         in_cube = (xyz > -1.0) & (xyz < 1.0)
         in_cube = in_cube.all(dim=1, keepdim=True).detach().float()
 
@@ -281,11 +281,11 @@ class HGPIFuNet(BasePIFuNet):
             # smpl_verts [B, N_vert, 3]
             # smpl_faces [B, N_face, 3]
             # points [B, 3, N]
-
+            # 获取 采样点对应的最近 smpl vert 的信息, 作为 local feature in ICON
             smpl_sdf, smpl_norm, smpl_cmap, smpl_vis = cal_sdf_batch(
-                self.smpl_feat_dict['smpl_verts'],
+                self.smpl_feat_dict['smpl_verts'], # 经过 fit 的 verts
                 self.smpl_feat_dict['smpl_faces'],
-                self.smpl_feat_dict['smpl_cmap'],
+                self.smpl_feat_dict['smpl_cmap'], # 应该是代表部位，有全局定位作用
                 self.smpl_feat_dict['smpl_vis'],
                 xyz.permute(0, 2, 1).contiguous())
 
@@ -294,7 +294,7 @@ class HGPIFuNet(BasePIFuNet):
             # smpl_cmap [B, N, 3]
             # smpl_vis [B, N, 1]
 
-            # set ourlier point features as uniform values
+            # set ourlier point features as uniform values  选取与smpl verts 有一定距离的 sample
             smpl_outlier = torch.abs(smpl_sdf).ge(self.sdf_clip)
             smpl_sdf[smpl_outlier] = torch.sign(smpl_sdf[smpl_outlier])
 
@@ -307,9 +307,9 @@ class HGPIFuNet(BasePIFuNet):
                 feat_lst.append(smpl_norm)
             if 'vis' in self.smpl_feats:
                 feat_lst.append(smpl_vis)
-
+            # local feat in
             smpl_feat = torch.cat(feat_lst, dim=2).permute(0, 2, 1)
-            vol_feats = features
+            vol_feats = features   # fb_normal cat, stacked hourglass
 
         elif self.prior_type == "pamir":
 
@@ -332,6 +332,7 @@ class HGPIFuNet(BasePIFuNet):
             # normal feature choice by smpl_vis
             if self.prior_type == 'icon':
                 if 'vis' in self.smpl_feats:
+                    # 2d feature (from predicted closed_body normal), include Nc in ICON
                     point_local_feat = feat_select(self.index(im_feat, xy),
                                                    smpl_feat[:, [-1], :])
                     if maskout:
@@ -377,7 +378,7 @@ class HGPIFuNet(BasePIFuNet):
             torch.tensor: error
         """
         error_if = 0
-
+        # use two hourGlass module as 2d feat, so outputs also contain two part
         for pred_id in range(len(preds_if_list)):
             pred_if = preds_if_list[pred_id]
             error_if += self.error_term(pred_if, labels)
@@ -397,14 +398,14 @@ class HGPIFuNet(BasePIFuNet):
         sample_tensor = in_tensor_dict['sample']
         calib_tensor = in_tensor_dict['calib']
         label_tensor = in_tensor_dict['label']
-
-        in_feat = self.filter(in_tensor_dict)
-
+        # temperal output of 沙漏 dim=6 2d feat_map from normal
+        in_feat = self.filter(in_tensor_dict)  # 需要 batch 中的 smpl
+        # combint 2d and 3d(from smpl) feat, get sigmoid ouput as occupancy 内1外0判断
         preds_if_list = self.query(in_feat,
                                    sample_tensor,
                                    calib_tensor,
                                    regressor=self.if_regressor)
 
         error = self.get_error(preds_if_list, label_tensor)
-
+        # 只输出最后一个 HG module 的 output
         return preds_if_list[-1], error
