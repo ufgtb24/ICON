@@ -50,7 +50,7 @@ net:
   smpl_dim: 7
 
 auto_lr_find: "lr_G"
-accumulate_grad_batches: 8
+#accumulate_grad_batches: 8
 #precision: 16
 lr_G: 1e-4
 weight_decay: 0.0 
@@ -73,7 +73,7 @@ optim: RMSprop
 
 # training (batch=4, set=agora, rot-6)
 overfit: False
-num_epoch: 10
+num_epoch: 15
 freq_show_train: 0.1
 freq_show_val: 0.3
 freq_plot: 0.01

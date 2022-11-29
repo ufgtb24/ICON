@@ -20,7 +20,6 @@ class Normal(pl.LightningModule):
         self.cfg = cfg
         self.batch_size = self.cfg.batch_size
         self.lr_N = self.cfg.lr_N
-        self.automatic_optimization=self.cfg.automatic_optimization
 
         self.schedulers = []
 
@@ -86,9 +85,7 @@ class Normal(pl.LightningModule):
 
         return result_array
 
-    def training_step(self, batch, batch_idx):
-        # print(f'normal train_step pid : {os.getpid()}')
-        # input()
+    def training_step(self, batch, batch_idx, optimizer_idx):
 
         export_cfg(self.logger, self.cfg)
 
@@ -205,7 +202,7 @@ class Normal(pl.LightningModule):
         }
 
     def validation_epoch_end(self, outputs):
-
+        
         # metrics processing
         metrics_log = {
             "val_avgloss": batch_mean(outputs, "val_loss"),
