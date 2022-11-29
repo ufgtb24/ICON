@@ -1,6 +1,6 @@
 name: icon-filter
 ckpt_dir: "./data/ckpt/"
-resume_path: "./data/ckpt/icon-filter.ckpt"
+resume_path: "./data/ckpt/icon-filter/epoch=05.ckpt"
 normal_path: "./data/ckpt/normal.ckpt"
 results_path: "./results"
 
@@ -49,6 +49,8 @@ net:
   voxel_dim: 32
   smpl_dim: 7
 
+auto_lr_find: "lr_G"
+accumulate_grad_batches: 8
 #precision: 16
 lr_G: 1e-4
 weight_decay: 0.0 
@@ -60,7 +62,7 @@ sdf: False
 sdf_clip: 15.0
 
 fast_dev: 0
-resume: False
+resume: True
 test_mode: False
 mcube_res: 512
 clean_mesh: True

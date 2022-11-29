@@ -1,4 +1,4 @@
-from pytorch_lightning.utilities.model_summary import ModelSummary
+# from pytorch_lightning.utilities.model_summary import ModelSummary
 import logging
 from pytorch_lightning.core.lightning import LightningModule
 from pytorch_lightning.utilities.cloud_io import atomic_save
@@ -87,22 +87,25 @@ if __name__ == "__main__":
         save_dir=cfg.results_path, name=cfg.name, default_hp_metric=False
     )
 
-    save_k = 3
+    save_k =3
 
     if cfg.overfit:
         cfg_overfit_list = ["batch_size", 1]
         cfg.merge_from_list(cfg_overfit_list)
-        save_k = 0
+        save_k = 3
 
     checkpoint = ModelCheckpoint(
         dirpath=osp.join(cfg.ckpt_dir, cfg.name),
         save_top_k=save_k,
         verbose=False,
-        save_weights_only=True,
-        monitor="avgloss",
+        save_last=True,
+        save_weights_only=False,
+        monitor="val/avgloss",
         mode="min",
         filename="{epoch:02d}",
     )
+    
+
 
     if cfg.test_mode or args.test_mode:
 
@@ -123,19 +126,20 @@ if __name__ == "__main__":
     trainer_kwargs = {
         "gpus": cfg.gpus,
         "auto_select_gpus": True,
-        "reload_dataloaders_every_n_epochs": 1,
+        "reload_dataloaders_every_epoch": True,
         "sync_batchnorm": True,
         "benchmark": True,
         "logger": tb_logger,
         "track_grad_norm": -1,
         "num_sanity_val_steps": cfg.num_sanity_val_steps,
+        "checkpoint_callback": checkpoint,
         "limit_train_batches": cfg.dataset.train_bsize,
         "limit_val_batches": cfg.dataset.val_bsize if not cfg.overfit else 0.001,
         "limit_test_batches": cfg.dataset.test_bsize if not cfg.overfit else 0.0,
         "profiler": None,
         "fast_dev_run": cfg.fast_dev,
         "max_epochs": cfg.num_epoch,
-        "callbacks": [LearningRateMonitor(logging_interval="step"),checkpoint],
+        "callbacks": [LearningRateMonitor(logging_interval="step")],
     }
 
     datamodule = PIFuDataModule(cfg)
@@ -146,10 +150,10 @@ if __name__ == "__main__":
         val_len = datamodule.data_size["val"]
         trainer_kwargs.update(
             {
-                "log_every_n_steps": 50,
-                "val_check_interval": 1
-                # "log_every_n_steps": int(cfg.freq_plot * train_len / cfg.batch_size),
-                # "val_check_interval": int(freq_eval * train_len / cfg.batch_size)
+                # "log_every_n_steps": 10,
+                # "val_check_interval": 1.0
+                "log_every_n_steps": int(cfg.freq_plot * train_len / cfg.batch_size),
+                "val_check_interval": int(freq_eval * train_len / cfg.batch_size)
                 if freq_eval > 10
                 else freq_eval,
             }
@@ -171,8 +175,8 @@ if __name__ == "__main__":
     # summary = ModelSummary(model, max_depth=-1)
     # print(summary)
 
-    trainer = SubTrainer(**trainer_kwargs)
-
+    # trainer = SubTrainer(**trainer_kwargs)
+    trainer = pl.Trainer(**trainer_kwargs)
     if (
         cfg.resume
         and os.path.exists(cfg.resume_path)
@@ -180,7 +184,8 @@ if __name__ == "__main__":
     ):
 
         trainer_kwargs["resume_from_checkpoint"] = cfg.resume_path
-        trainer = SubTrainer(**trainer_kwargs)
+        # trainer = SubTrainer(**trainer_kwargs)
+        trainer = pl.Trainer(**trainer_kwargs)
         print(
             colored(f"Resume weights and hparams from {cfg.resume_path}", "green"))
 
@@ -239,6 +244,8 @@ if __name__ == "__main__":
         pass
 
     if not cfg.test_mode:
+        trainer.tune(model)
+        print('find rl = ',model.lr_G)
         trainer.fit(model=model, datamodule=datamodule)
         trainer.test(model=model, datamodule=datamodule)
     else:
