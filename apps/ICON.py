@@ -745,12 +745,12 @@ class ICON(pl.LightningModule):
                 in_tensor_dict.update({key: batch[key]})
         else:
             pass
-
+        # inter 是正反面 Normal 的 concat
         features, inter = self.netG.filter(in_tensor_dict, return_inter=True)
         sdf = self.reconEngine(
             opt=self.cfg, netG=self.netG, features=features, proj_matrix=None
-        )
-
+        ) # 由采样点，推导出 voxel 的 occupy
+        # voxel 的 occupy 生成网格
         verts_pr, faces_pr = self.reconEngine.export_mesh(sdf)
 
         if self.clean_mesh_flag:

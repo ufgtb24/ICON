@@ -8,6 +8,8 @@ Things you need to change: *_ROOT that indicate the path to each dataset
 import os
 
 # pymaf
+from huggingface_hub import cached_download
+
 pymaf_data_dir = os.path.join(os.path.dirname(__file__),
                               "../../../data/pymaf_data")
 

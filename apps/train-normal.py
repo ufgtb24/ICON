@@ -60,6 +60,9 @@ if __name__ == "__main__":
 
     trainer_kwargs = {
         "accumulate_grad_batches": 8,
+        
+        #    site-packages/pytorch_lightning/core/lightning.py   manual_backward
+        #    self.trainer.train_loop.backward(loss, optimizer=optimizer, opt_idx=None, *args, **kwargs)
         # "precision": 16,
     
         "gpus": cfg.gpus,

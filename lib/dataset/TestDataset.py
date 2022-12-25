@@ -231,7 +231,7 @@ class TestDataset():
 
         if self.hps_type == 'pymaf':
             output = preds_dict['smpl_out'][-1]
-            scale, tranX, tranY = output['theta'][0, :3]
+            scale, tranX, tranY = output['theta'][0, :3] # cam
             data_dict['betas'] = output['pred_shape']
             data_dict['body_pose'] = output['rotmat'][:, 1:]
             data_dict['global_orient'] = output['rotmat'][:, 0:1]

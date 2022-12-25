@@ -50,6 +50,8 @@ logging.getLogger("trimesh").setLevel(logging.ERROR)
 
 
 if __name__ == "__main__":
+    print(f'infer pid : {os.getpid()}')
+    input()
 
     # loading cfg file
     parser = argparse.ArgumentParser()
@@ -214,7 +216,7 @@ if __name__ == "__main__":
             diff_B_smpl = torch.abs(
                 in_tensor["T_normal_B"] - in_tensor["normal_B"])
 
-            losses["normal"]["value"] = (diff_F_smpl + diff_F_smpl).mean()
+            losses["normal"]["value"] = (diff_F_smpl + diff_B_smpl).mean()
 
             # silhouette loss
             smpl_arr = torch.cat([T_mask_F, T_mask_B], dim=-1)[0]
@@ -389,7 +391,7 @@ if __name__ == "__main__":
 
         with torch.no_grad():
             verts_pr, faces_pr, _ = model.test_single(in_tensor)
-
+        # 导出 预测的 closed_human mesh
         recon_obj = trimesh.Trimesh(
             verts_pr, faces_pr, process=False, maintains_order=True
         )
@@ -452,7 +454,7 @@ if __name__ == "__main__":
                     in_tensor["P_normal_F"] - in_tensor["normal_F"])
                 diff_B_cloth = torch.abs(
                     in_tensor["P_normal_B"] - in_tensor["normal_B"])
-
+                # 通过 DR 优化一些 mesh 的属性，并尽量保持原来的 mesh
                 losses["cloth"]["value"] = (diff_F_cloth + diff_B_cloth).mean()
                 losses["stiffness"]["value"] = torch.mean(stiffness)
                 losses["rigid"]["value"] = torch.mean(rigid)

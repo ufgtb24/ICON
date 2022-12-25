@@ -139,9 +139,9 @@ def process_image(img_file, det, hps_type, input_res=512, device=None, seg_path=
     img_rgb = image_to_tensor(img_pil.convert("RGB"))
     img_mask = torch.tensor(1.0) - (mask_to_tensor(img_pil.split()[-1]) <
                                     torch.tensor(0.5)).float()
-    img_tensor = img_rgb * img_mask
+    img_tensor = img_rgb * img_mask   # icon 需要过滤掉背景
 
-    # for hps
+    # for hps    hps 需要做一些归一化
     img_hps = img_np.astype(np.float32) / 255.
     img_hps = torch.from_numpy(img_hps).permute(2, 0, 1)
 

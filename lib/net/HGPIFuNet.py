@@ -281,7 +281,7 @@ class HGPIFuNet(BasePIFuNet):
             # smpl_verts [B, N_vert, 3]
             # smpl_faces [B, N_face, 3]
             # points [B, 3, N]
-            # 获取 采样点对应的最近 smpl vert 的信息, 作为 local feature in ICON
+            # 获取 采样点对应的 nearest smpl vertex 信息, 作为 local feature in ICON
             smpl_sdf, smpl_norm, smpl_cmap, smpl_vis = cal_sdf_batch(
                 self.smpl_feat_dict['smpl_verts'], # 经过 fit 的 verts
                 self.smpl_feat_dict['smpl_faces'],
@@ -341,7 +341,7 @@ class HGPIFuNet(BasePIFuNet):
                             (1, smpl_feat.shape[1], 1))
                         normal_mask[:, 1:, :] = False
                         smpl_feat[normal_mask] = -1.0
-                    point_feat_list = [point_local_feat, smpl_feat[:, :-1, :]]
+                    point_feat_list = [point_local_feat, smpl_feat[:, :-1, :]] # 排除 vis
                 else:
                     point_local_feat = self.index(im_feat, xy)
                     point_feat_list = [point_local_feat, smpl_feat[:, :, :]]
@@ -400,7 +400,7 @@ class HGPIFuNet(BasePIFuNet):
         label_tensor = in_tensor_dict['label']
         # temperal output of 沙漏 dim=6 2d feat_map from normal
         in_feat = self.filter(in_tensor_dict)  # 需要 batch 中的 smpl
-        # combint 2d and 3d(from smpl) feat, get sigmoid ouput as occupancy 内1外0判断
+        # combine 2d and 3d(from smpl) feat, get sigmoid ouput as occupancy 内1外0判断
         preds_if_list = self.query(in_feat,
                                    sample_tensor,
                                    calib_tensor,

@@ -85,12 +85,14 @@ def extract_cloth(recon, segmentation, K, R, t, smpl=None):
         Returns a submesh using the segmentation coordinates
     """
     seg_coord = segmentation['coord_normalized']
-    mesh = trimesh.Trimesh(recon.vertices, recon.faces)
+    # mesh = trimesh.Trimesh(recon.vertices, recon.faces)
+    mesh = recon.copy()
     extrinsic = np.zeros((3, 4))
     extrinsic[:3, :3] = R
     extrinsic[:, 3] = t
     P = K[:3, :3] @ extrinsic
-
+    # https://www.cnblogs.com/bigmonkey/p/9897047.html  投影矩阵
+    # https://zhuanlan.zhihu.com/p/43494217 伪逆矩阵
     P_inv = np.linalg.pinv(P)
 
     # Each segmentation can contain multiple polygons
@@ -100,6 +102,7 @@ def extract_cloth(recon, segmentation, K, R, t, smpl=None):
     for polygon in seg_coord:
         n = len(polygon)
         coords_h = np.hstack((polygon, np.ones((n, 1))))
+        ## https://www.cnblogs.com/d1012181765/p/13936981.html
         # Apply the inverse projection on homogeneus 2D coordinates to get the corresponding 3d Coordinates
         XYZ = P_inv @ coords_h[:, :, None]
         XYZ = XYZ.reshape((XYZ.shape[0], XYZ.shape[1]))
