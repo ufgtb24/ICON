@@ -19,6 +19,9 @@ import time
 import trimesh
 from matplotlib import cm
 
+print(f'render_single pid : {os.getpid()}')
+input()
+
 t0 = time.time()
 
 parser = argparse.ArgumentParser()

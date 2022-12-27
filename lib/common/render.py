@@ -78,6 +78,7 @@ def query_color(verts, faces, image, device):
     uv = uv * torch.tensor([1.0, -1.0]).type_as(uv)
     colors = (torch.nn.functional.grid_sample(image, uv, align_corners=True)[
               0, :, :, 0].permute(1, 0) + 1.0) * 0.5 * 255.0
+    # use normal map as color of invisible backside of mesh
     colors[visibility == 0.0] = ((Meshes(verts.unsqueeze(0), faces.unsqueeze(
         0)).verts_normals_padded().squeeze(0) + 1.0) * 0.5 * 255.0)[visibility == 0.0]
 

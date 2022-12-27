@@ -406,6 +406,7 @@ if __name__ == "__main__":
 
         # define local_affine deform verts
         mesh_pr = Meshes(verts_refine, faces_refine).to(device)
+        # learn local affine to reconstruct mesh
         local_affine_model = LocalAffine(
             mesh_pr.verts_padded().shape[1], mesh_pr.verts_padded().shape[0], mesh_pr.edges_packed()).to(device)
         optimizer_cloth = torch.optim.Adam(
@@ -442,6 +443,8 @@ if __name__ == "__main__":
 
                 deformed_verts, stiffness, rigid = local_affine_model(
                     verts_refine.to(device), return_stiff=True)
+                
+                # the final mesh need to save
                 mesh_pr = mesh_pr.update_padded(deformed_verts)
 
                 # losses for laplacian, edge, normal consistency
@@ -449,7 +452,8 @@ if __name__ == "__main__":
 
                 in_tensor["P_normal_F"], in_tensor["P_normal_B"] = dataset.render_normal(
                     mesh_pr.verts_padded(), mesh_pr.faces_padded())
-
+                # difference between normal rendered from reconstructed mesh
+                # and normal inferred from input image
                 diff_F_cloth = torch.abs(
                     in_tensor["P_normal_F"] - in_tensor["normal_F"])
                 diff_B_cloth = torch.abs(
@@ -471,7 +475,7 @@ if __name__ == "__main__":
 
                 pbar_desc += f"Total: {cloth_loss:.5f}"
                 loop_cloth.set_description(pbar_desc)
-
+                # optimize local affine after infer
                 # update params
                 cloth_loss.backward(retain_graph=True)
                 optimizer_cloth.step()
@@ -480,14 +484,14 @@ if __name__ == "__main__":
                 # for vis
                 with torch.no_grad():
                     if i % args.vis_freq == 0:
-
+                        # list of normal images of mesh_pr in multiple angles
                         rotate_recon_lst = dataset.render.get_rgb_image(cam_ids=[
                             0, 1, 2, 3])
 
                         per_loop_lst.extend(
                             [
                                 in_tensor["image"],
-                                in_tensor["P_normal_F"],
+                                in_tensor["P_normal_F"],  # final
                                 in_tensor["normal_F"],
                                 diff_F_cloth / 2.0,
                             ]
@@ -495,14 +499,14 @@ if __name__ == "__main__":
                         per_loop_lst.extend(
                             [
                                 in_tensor["image"],
-                                in_tensor["P_normal_B"],
+                                in_tensor["P_normal_B"],  # final
                                 in_tensor["normal_B"],
                                 diff_B_cloth / 2.0,
                             ]
                         )
                         per_loop_lst.extend(rotate_recon_lst)
                         per_data_lst.append(
-                            get_optim_grid_image(
+                            get_optim_grid_image(  # add title
                                 per_loop_lst, None, type="cloth")
                         )
 
