@@ -7,17 +7,12 @@ MODE=$5
 SUBJECT=$6
 SEQ=$7
 
-PYTHON_SCRIPT="scripts/render_single.py"
+PYTHON_SCRIPT="scripts/p2o2.py"
 
 if [[ $MODE == "gen" ]]; then
     echo "processing all the subjects"
     # render all the subjects
-    LOG_FILE="./log/render/${DATASET}-${NUM_VIEWS}-${SIZE}-${PART}.txt"
-    SAVE_DIR="./data/${DATASET}/${SUBJECT}_${NUM_VIEWS}views/$SEQ"
-    mkdir -p $SAVE_DIR
-    mkdir -p "./log/render/"
-    # cat ./data/$DATASET/$SUBJECT/$SEQ.txt | shuf | xargs -P$NUM_THREADS -I {} python $PYTHON_SCRIPT -s $SUBJECT -q $SEQ -f {} -o $SAVE_DIR -r $NUM_VIEWS -w $SIZE> $LOG_FILE
-    PYTHONUNBUFFERED=1 python -u $PYTHON_SCRIPT -s $SUBJECT -q $SEQ -f 'shortlong_hips.000001.ply' -o $SAVE_DIR -r $NUM_VIEWS -w $SIZE
+    cat ./data/$DATASET/$SUBJECT/$SEQ.txt | shuf | xargs -P$NUM_THREADS -I {} python $PYTHON_SCRIPT -s $SUBJECT -q $SEQ -f {}
 fi
 
 if [[ $MODE == "debug" ]]; then

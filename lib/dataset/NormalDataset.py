@@ -27,7 +27,7 @@ class NormalDataset():
     def __init__(self, cfg, split='train'):
 
         self.split = split
-        self.root = cfg.root
+        self.root = cfg.mesh_root
         self.bsize = cfg.batch_size
         self.overfit = cfg.overfit
 

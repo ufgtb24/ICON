@@ -39,7 +39,7 @@ class PIFuDataset():
     def __init__(self, cfg, split='train', vis=False):
 
         self.split = split
-        self.root = cfg.root
+        self.root = cfg.mesh_root
         self.bsize = cfg.batch_size
         self.overfit = cfg.overfit
 

@@ -55,7 +55,7 @@ class HGPIFuNet(BasePIFuNet):
 
         self.l1_loss = nn.SmoothL1Loss()
         self.opt = cfg.net
-        self.root = cfg.root
+        self.root = cfg.mesh_root
         self.overfit = cfg.overfit
 
         channels_IF = self.opt.mlp_dim
