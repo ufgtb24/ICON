@@ -7,7 +7,7 @@ MODE=$5
 SUBJECT=$6
 SEQ=$7
 
-PYTHON_SCRIPT="scripts/render_single.py"
+PYTHON_SCRIPT="scripts/render_single_cape.py"
 
 if [[ $MODE == "gen" ]]; then
     echo "processing all the subjects"

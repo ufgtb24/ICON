@@ -51,7 +51,7 @@ dataset = save_folder.split("/")[-1].split("_")[0]
 format = 'obj'
 scale = 100.0
 up_axis = 1
-pcd = False
+pcd = True
 smpl_type = "smplx"
 with_light = True
 depth = False
@@ -64,7 +64,7 @@ tex_file = f'./data/{dataset}/scans/{subject}/material0.jpeg'
 fit_file = f'./data/{dataset}/fits/{subject}/smplx_param.pkl'
 
 # mesh
-mesh = trimesh.load(mesh_file, skip_materials=True,
+mesh = trimesh.load(mesh_file, file_type='ply',skip_materials=True,
                     process=False, maintain_order=True, force='mesh')
 
 if not pcd:

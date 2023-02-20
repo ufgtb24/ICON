@@ -22,6 +22,7 @@ import lib.smplx as smplx
 import trimesh
 import torch
 import torch.nn.functional as F
+from scipy.spatial.transform import Rotation as R
 
 model_init_params = dict(
     gender='male',
@@ -53,6 +54,35 @@ def sigmoid(x):
     z = 1 / (1 + np.exp(-x))
     return z
 
+def load_smpl_body(fitted_path,scale):
+    points_dict = np.load(fitted_path)
+    minimal_body = np.load('/home/yu/AMirror/ICON/data/cape_raw/00096/fit/00096_minimal.npy')
+    J_regressor =dict(np.load('/home/yu/AMirror/ICON/data/cape_raw/00096/fit/J_regressors.npz'))['male']
+
+    Jtr = np.dot(J_regressor, minimal_body)
+
+    pose_body = points_dict['pose_body'].astype(np.float32)
+    pose_hand = points_dict['pose_hand'].astype(np.float32)
+    trans = points_dict['trans'].astype(np.float32)
+    bone_transforms = points_dict['bone_transforms'].astype(np.float32)
+    pose = np.concatenate([pose_body, pose_hand], axis=-1)
+    
+    pose = R.from_rotvec(pose.reshape([-1, 3]))
+    
+    pose_mat = pose.as_matrix()
+    ident = np.eye(3)
+    pose_feature = (pose_mat - ident).reshape([207, 1])
+    posedir=dict(np.load('/home/yu/AMirror/ICON/data/cape_raw/00096/fit/posedirs_all.npz'))['male']
+    skinning_weights = dict(np.load('/home/yu/AMirror/ICON/data/cape_raw/00096/fit/skinning_weights_all.npz'))['male']
+    pose_offsets = np.dot(posedir.reshape([-1, 207]), pose_feature).reshape([6890, 3])
+    minimal_body += pose_offsets
+    n_smpl_points = minimal_body.shape[0]
+    homogen_coord = np.ones([n_smpl_points, 1], dtype=np.float32)
+
+    T = np.dot(skinning_weights, bone_transforms.reshape([-1, 16])).reshape([-1, 4, 4])
+    a_pose_homo = np.concatenate([minimal_body, homogen_coord], axis=-1).reshape([n_smpl_points, 4, 1])
+    smpl_mesh = np.matmul(T, a_pose_homo)[:, :3, 0].astype(np.float32) + trans
+    return smpl_mesh *scale,Jtr*scale
 
 def load_fit_body(fitted_path, scale, smpl_type='smplx', smpl_gender='neutral', noise_dict=None):
 

@@ -1,8 +1,11 @@
 import sys
+
+import vedo
+
 sys.path.append('/home/yu/AMirror/ICON')
 # generate renderimage and normal from different cam rotation, and record normalization and rotation to calib
 import lib.renderer.opengl_util as opengl_util
-from lib.renderer.mesh import load_fit_body, load_scan, compute_tangent, load_ori_fit_body
+from lib.renderer.mesh import load_fit_body, load_scan, compute_tangent, load_ori_fit_body, load_smpl_body
 import lib.renderer.prt_util as prt_util
 from lib.renderer.gl.init_gl import initialize_GL_context
 from lib.renderer.gl.prt_render import PRTRender
@@ -18,11 +21,15 @@ import math
 import time
 import trimesh
 from matplotlib import cm
+import open3d as o3d
+
+
+
 pid=os.getpid()
 print(pid)
 input()
 # import sys
-# t0 = time.time()
+t0 = time.time()
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -45,7 +52,7 @@ frame = args.frame
 save_folder = args.out_dir
 rotation = int(args.rotation)
 size = int(args.size)
-
+frame_num=frame.split('.')[1]
 # headless
 egl = True
 
@@ -56,7 +63,7 @@ dataset = save_folder.split("/")[2]
 
 scale = 100.0
 up_axis = 1
-pcd = False
+pcd = True
 smpl_type = "smplx"
 with_light = True
 depth = False
@@ -96,16 +103,37 @@ else:
 # center
 
 scan_scale = 1.8/(vertices.max(0)[up_axis] - vertices.min(0)[up_axis])
-rescale_fitted_body, joints = load_fit_body(fit_file,
-                                            scale,
-                                            smpl_type='smplx',
-                                            smpl_gender='male')
 
-os.makedirs(os.path.dirname(smplx_file), exist_ok=True)
-ori_smplx = load_ori_fit_body(fit_file,
-                              smpl_type='smplx',
-                              smpl_gender='male')
-ori_smplx.export(smplx_file)
+smpl_face=np.loadtxt('/home/yu/AMirror/ICON/data/cape_raw/00096/fit/face_idx.txt',dtype=np.int)
+# rank_idx=np.loadtxt('/home/yu/AMirror/ICON/data/cape_raw/00096/fit/rank_idx.txt',dtype=np.int)
+# smpl_normals = trimesh.load(mesh_file, file_type='ply')
+
+
+smpl_vert, joints = load_smpl_body('/home/yu/AMirror/ICON/data/cape_raw/00096/fit/shortlong_hips.000001.npz',scale)
+# rescale_fitted_body, joints = load_fit_body(fit_file,
+#                                             scale,
+#                                             smpl_type='smplx',
+#                                             smpl_gender='male')
+
+
+
+rescale_fitted_body = o3d.geometry.TriangleMesh(o3d.utility.Vector3dVector(smpl_vert), o3d.utility.Vector3iVector(smpl_face))
+# 计算顶点法向量
+rescale_fitted_body.compute_vertex_normals()
+
+# x = trimesh.Trimesh(
+#     np.asarray(rescale_fitted_body.vertices), smpl_face, process=False, maintain_order=True)
+# x.visual.vertex_colors = [128.0, 128.0, 0.0, 255.0]
+#
+#
+# vp = vedo.Plotter(title="", size=(1500, 1500), axes=0, bg='white')
+# vp.show(x, bg="white", axes=1.0, interactive=True)
+
+# os.makedirs(os.path.dirname(smplx_file), exist_ok=True)
+# ori_smplx = load_ori_fit_body(fit_file,
+#                               smpl_type='smplx',
+#                               smpl_gender='male')
+# ori_smplx.export(smplx_file)
 
 vertices *= scale
 vmin = vertices.min(0)
@@ -114,10 +142,10 @@ vmed = joints[0]
 vmed[up_axis] = 0.5*(vmax[up_axis] + vmin[up_axis])
 
 rndr_depth = ColorRender(width=size, height=size, egl=egl)
-rndr_depth.set_mesh(rescale_fitted_body.vertices,
-                    rescale_fitted_body.faces,
-                    rescale_fitted_body.vertices,
-                    rescale_fitted_body.vertex_normals)
+rndr_depth.set_mesh(np.asarray(rescale_fitted_body.vertices),
+                    np.asarray(rescale_fitted_body.triangles),
+                    np.asarray(rescale_fitted_body.vertices),
+                    np.asarray(rescale_fitted_body.vertex_normals))
 rndr_depth.set_norm_mat(scan_scale, vmed)
 
 
@@ -131,6 +159,7 @@ if pcd:
     rndr = ColorRender(width=size, height=size, egl=egl)
     rndr.set_mesh(vertices, faces, colors, normals)
     rndr.set_norm_mat(scan_scale, vmed)
+    # shs = np.load('./scripts/env_sh.npy')
 
 else:
 
@@ -204,7 +233,7 @@ for y in range(0, 360, 360//rotation):
     calib = opengl_util.load_calib(dic, render_size=size)
 
     export_calib_file = os.path.join(
-        save_folder, subject, 'calib', f'{y:03d}.txt')
+        save_folder, frame_num, 'calib', f'{y:03d}.txt')
     os.makedirs(os.path.dirname(export_calib_file), exist_ok=True)
     np.savetxt(export_calib_file, calib)
 
@@ -214,22 +243,22 @@ for y in range(0, 360, 360//rotation):
     rndr.display()
 
     opengl_util.render_result(rndr, 0, os.path.join(
-        save_folder, subject, 'render', f'{y:03d}.png'))
+        save_folder, frame_num, 'render', f'{y:03d}.png'))
     if normal:
         opengl_util.render_result(rndr, 1, os.path.join(
-            save_folder, subject, 'normal_F', f'{y:03d}.png'))
+            save_folder, frame_num, 'normal_F', f'{y:03d}.png'))
 
     if depth:
         opengl_util.render_result(rndr, 2, os.path.join(
-            save_folder, subject, 'depth_F', f'{y:03d}.png'))
+            save_folder, frame_num, 'depth_F', f'{y:03d}.png'))
 
     if smpl_type != "none":
         rndr_depth.display()
         opengl_util.render_result(rndr_depth, 1, os.path.join(
-            save_folder, subject, 'T_normal_F', f'{y:03d}.png'))
+            save_folder, frame_num, 'T_normal_F', f'{y:03d}.png'))
         if depth:
             opengl_util.render_result(rndr_depth, 2, os.path.join(
-                save_folder, subject, 'T_depth_F', f'{y:03d}.png'))
+                save_folder, frame_num, 'T_depth_F', f'{y:03d}.png'))
 
     # ==================================================================
 
@@ -243,22 +272,22 @@ for y in range(0, 360, 360//rotation):
 
     if normal:
         opengl_util.render_result(rndr, 1, os.path.join(
-            save_folder, subject, 'normal_B', f'{y:03d}.png'))
+            save_folder, frame_num, 'normal_B', f'{y:03d}.png'))
     if depth:
         opengl_util.render_result(rndr, 2, os.path.join(
-            save_folder, subject, 'depth_B', f'{y:03d}.png'))
+            save_folder, frame_num, 'depth_B', f'{y:03d}.png'))
 
     if smpl_type != "none":
         rndr_depth.set_camera(cam)
         rndr_depth.display()
         opengl_util.render_result(rndr_depth, 1, os.path.join(
-            save_folder, subject, 'T_normal_B', f'{y:03d}.png'))
+            save_folder, frame_num, 'T_normal_B', f'{y:03d}.png'))
         if depth:
             opengl_util.render_result(rndr_depth, 2, os.path.join(
-                save_folder, subject, 'T_depth_B', f'{y:03d}.png'))
+                save_folder, frame_num, 'T_depth_B', f'{y:03d}.png'))
 
 
-done_jobs = len(glob.glob(f"{save_folder}/*/render"))
-all_jobs = len(os.listdir(f"./data/{dataset}/scans"))
-print(
-    f"Finish rendering {subject}| {done_jobs}/{all_jobs} | Time: {(time.time()-t0):.0f} secs")
+# done_jobs = len(glob.glob(f"{save_folder}/*/render"))
+# all_jobs = len(os.listdir(f"./data/{dataset}/scans"))
+# print(
+#     f"Finish rendering {subject}| {done_jobs}/{all_jobs} | Time: {(time.time()-t0):.0f} secs")
