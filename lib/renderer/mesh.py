@@ -351,6 +351,23 @@ def load_obj_mesh_mtl(mesh_file):
 
     return out_tuple
 
+def gen_uv(vertex_colors,texture_size = (512, 512)):
+      # 纹理图像的大小为 512x512 像素
+    texture_channels = 3  # 纹理图像的通道数为 3，即 RGB
+    
+    # 创建一个全零的纹理图像数组
+    texture_data = np.zeros((texture_size[1], texture_size[0], texture_channels), dtype=np.uint8)
+    uv = []
+    
+    # 将每个顶点的颜色值复制到纹理图像的对应像素位置
+    for i, color in enumerate(vertex_colors):
+        # 计算顶点在纹理图像中的位置，假设纹理图像的原点位于左上角
+        u = int(i % texture_size[0])
+        v = int(i / texture_size[0])
+        uv.append([u,v])
+        # 将顶点颜色复制到纹理图像对应像素位置
+        texture_data[v, u, :] = color
+    return np.array(uv,np.int32),texture_data
 
 def load_scan(mesh_file, with_normal=False, with_texture=False):
     vertex_data = []

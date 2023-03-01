@@ -5,7 +5,7 @@ import vedo
 sys.path.append('/home/yu/AMirror/ICON')
 # generate renderimage and normal from different cam rotation, and record normalization and rotation to calib
 import lib.renderer.opengl_util as opengl_util
-from lib.renderer.mesh import load_fit_body, load_scan, compute_tangent, load_ori_fit_body, load_smpl_body
+from lib.renderer.mesh import load_fit_body, load_scan, compute_tangent, load_ori_fit_body, load_smpl_body, gen_uv
 import lib.renderer.prt_util as prt_util
 from lib.renderer.gl.init_gl import initialize_GL_context
 from lib.renderer.gl.prt_render import PRTRender
@@ -88,6 +88,7 @@ if not pcd:
     
     vertices, faces, normals, faces_normals, textures, face_textures = load_scan(
         mesh_file, with_normal=True, with_texture=True)
+    
 else:
     mesh = trimesh.load(mesh_file, file_type='ply')
     
@@ -99,6 +100,10 @@ else:
     vertices = mesh.vertices
     faces = mesh.faces
     normals = mesh.vertex_normals
+    face_textures=faces
+    faces_normals=faces
+    colors = mesh.visual.vertex_colors[:, :3] / 255.0
+    textures,texture_image=gen_uv(colors, texture_size=(5000, 5000))
 
 # center
 
@@ -153,40 +158,40 @@ rndr_depth.set_norm_mat(scan_scale, vmed)
 cam = Camera(width=size, height=size)
 cam.ortho_ratio = 0.4 * (512 / size)
 
-if pcd:
+# if pcd:
+#
+#     colors = mesh.visual.vertex_colors[:, :3] / 255.0
+#     rndr = ColorRender(width=size, height=size, egl=egl)
+#     rndr.set_mesh(vertices, faces, colors, normals)
+#     rndr.set_norm_mat(scan_scale, vmed)
+#     shs = np.load('./scripts/env_sh.npy')
+#
+# else:
 
-    colors = mesh.visual.vertex_colors[:, :3] / 255.0
-    rndr = ColorRender(width=size, height=size, egl=egl)
-    rndr.set_mesh(vertices, faces, colors, normals)
-    rndr.set_norm_mat(scan_scale, vmed)
-    # shs = np.load('./scripts/env_sh.npy')
+prt, face_prt = prt_util.computePRT(mesh_file, scale, 10, 2)
+shs = np.load('./scripts/env_sh.npy')
+rndr = PRTRender(width=size, height=size, ms_rate=16, egl=egl)
 
-else:
+# texture
+# texture_image = cv2.imread(tex_file)
+# texture_image = cv2.cvtColor(texture_image, cv2.COLOR_BGR2RGB)
 
-    prt, face_prt = prt_util.computePRT(mesh_file, scale, 10, 2)
-    shs = np.load('./scripts/env_sh.npy')
-    rndr = PRTRender(width=size, height=size, ms_rate=16, egl=egl)
+# fake multiseg
+vertices_label_mode = np.random.randint(low=1, high=10, size=(
+    vertices.shape[0], 10))   # [scan_verts_n, percomp]
+colormap = cm.get_cmap("rainbow")
+precomp_id = 4
+verts_label = colormap(vertices_label_mode[:, precomp_id]/np.max(
+    vertices_label_mode[:, precomp_id]))[:, :3]  # [scan_verts_num, 3]
 
-    # texture
-    texture_image = cv2.imread(tex_file)
-    texture_image = cv2.cvtColor(texture_image, cv2.COLOR_BGR2RGB)
+tan, bitan = compute_tangent(
+    vertices, faces, normals, None, None)
 
-    # fake multiseg
-    vertices_label_mode = np.random.randint(low=1, high=10, size=(
-        vertices.shape[0], 10))   # [scan_verts_n, percomp]
-    colormap = cm.get_cmap("rainbow")
-    precomp_id = 4
-    verts_label = colormap(vertices_label_mode[:, precomp_id]/np.max(
-        vertices_label_mode[:, precomp_id]))[:, :3]  # [scan_verts_num, 3]
-
-    tan, bitan = compute_tangent(
-        vertices, faces, normals, textures, face_textures)
-
-    rndr.set_norm_mat(scan_scale, vmed)
-    rndr.set_mesh(vertices, faces, normals, faces_normals,
-                  textures, face_textures,
-                  prt, face_prt, tan, bitan, verts_label)
-    rndr.set_albedo(texture_image)
+rndr.set_norm_mat(scan_scale, vmed)
+rndr.set_mesh(vertices, faces, normals, faces_normals,
+              textures, face_textures,
+              prt, face_prt, tan, bitan, verts_label)
+rndr.set_albedo(texture_image)
 
 
 for y in range(0, 360, 360//rotation):
