@@ -65,7 +65,7 @@ scale = 100.0
 up_axis = 1
 pcd = True
 smpl_type = "smplx"
-with_light = True
+with_light = False
 depth = False
 normal = True
 
