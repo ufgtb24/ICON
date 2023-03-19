@@ -25,9 +25,9 @@ import open3d as o3d
 
 
 
-pid=os.getpid()
-print(pid)
-input()
+# pid=os.getpid()
+# print(pid)
+# input()
 # import sys
 t0 = time.time()
 
@@ -61,7 +61,7 @@ initialize_GL_context(width=size, height=size, egl=egl)
 
 dataset = save_folder.split("/")[2]
 
-scale = 100.0
+scale = 100.
 up_axis = 1
 pcd = True
 smpl_type = "smplx"
@@ -96,7 +96,7 @@ else:
     comp_num = [mesh.vertices.shape[0] for mesh in mesh_lst]
     mesh = mesh_lst[comp_num.index(max(comp_num))]
 
-    vertices = mesh.vertices
+    vertices = mesh.vertices/1000.
     faces = mesh.faces
     normals = mesh.vertex_normals
 

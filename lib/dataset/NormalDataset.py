@@ -27,7 +27,7 @@ class NormalDataset():
     def __init__(self, cfg, split='train'):
 
         self.split = split
-        self.root = cfg.mesh_root
+        self.root = cfg.root
         self.bsize = cfg.batch_size
         self.overfit = cfg.overfit
 
@@ -127,10 +127,12 @@ class NormalDataset():
         mid = index // len(self.rotations)
 
         rotation = self.rotations[rid]
+        frame = self.subject_list[mid].split("/")[3]
+        seq = self.subject_list[mid].split("/")[2]
         subject = self.subject_list[mid].split("/")[1]
         dataset = self.subject_list[mid].split("/")[0]
-        render_folder = "/".join([dataset +
-                                 f"_{self.opt.rotation_num}views", subject])
+        render_folder = "/".join([dataset,subject +
+                                 f"_{self.opt.rotation_num}views", seq,frame])
 
         # setup paths
         data_dict = {

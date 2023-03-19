@@ -17,8 +17,8 @@ import numpy as np
 logging.getLogger("lightning").setLevel(logging.ERROR)
 
 if __name__ == "__main__":
-    # print(f'train-normal pid : {os.getpid()}')
-    # input()
+    print(f'train-normal pid : {os.getpid()}')
+    input()
     
     parser = argparse.ArgumentParser()
     parser.add_argument(

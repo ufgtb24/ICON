@@ -1,15 +1,17 @@
 import os
 import glob
-mesh_root= '/home/yu/AMirror/ICON/data/cape_raw/00096'
-fit_root='/home/yu/AMirror/ICON/data/cape_raw/00096_fit'
+dataset='cape_raw'
+subject='00096'
+
+subject_path= f'/home/yu/AMirror/ICON/data/{dataset}/{subject}'
 # os.makedirs(fit_root)
 
-for cm in os.listdir(mesh_root):
+for seq in os.listdir(os.path.join(subject_path, 'scans_ply')):
     # os.makedirs(os.path.join(fit_root,cm))
-    
-    with open(f'{mesh_root}/{cm}.txt', 'w') as f:
-        for file in os.listdir(os.path.join(mesh_root, cm)):
-            f.write(file+'\n')
+    with open(f'{subject_path}/{seq}.txt', 'w') as f:
+        for file in sorted(os.listdir(f'{subject_path}/scans_ply/{seq}')):
+            frame=file.split('.')[1]
+            f.write(f'{dataset}/{subject}/{seq}/{frame}\n')
             
     # with open('/home/yu/AMirror/ICON/data/cape_raw/00096.txt','w') as f:
     #     for file_path in file_paths:
