@@ -16,8 +16,8 @@ if [[ $MODE == "gen" ]]; then
     SAVE_DIR="./data/${DATASET}/${SUBJECT}_${NUM_VIEWS}views/$SEQ"
     mkdir -p $SAVE_DIR
     mkdir -p "./log/render/"
-    cat ./data/$DATASET/$SUBJECT/$SEQ.txt | shuf | xargs -P$NUM_THREADS -I {} python $PYTHON_SCRIPT -s $SUBJECT -q $SEQ -f {} -o $SAVE_DIR -r $NUM_VIEWS -w $SIZE> $LOG_FILE
-#    PYTHONUNBUFFERED=1 python -u $PYTHON_SCRIPT -s $SUBJECT -q $SEQ -f 'shortlong_hips.000001.ply' -o $SAVE_DIR -r $NUM_VIEWS -w $SIZE
+#    cat ./data/$DATASET/$SUBJECT/$SEQ.txt | shuf | xargs -P$NUM_THREADS -I {} python $PYTHON_SCRIPT -s $SUBJECT -q $SEQ -f {} -o $SAVE_DIR -r $NUM_VIEWS -w $SIZE
+    PYTHONUNBUFFERED=1 python -u $PYTHON_SCRIPT -s $SUBJECT -q $SEQ -f 'shortlong_hips.000001.ply' -o $SAVE_DIR -r $NUM_VIEWS -w $SIZE
 fi
 
 if [[ $MODE == "debug" ]]; then

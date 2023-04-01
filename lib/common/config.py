@@ -24,7 +24,7 @@ _C = CN(new_allowed=True)
 _C.name = 'default'
 _C.gpus = [0]
 _C.test_gpus = [1]
-_C.root = "./data/"
+_C.root = "/home/yu/AMirror/ICON/data/"
 _C.ckpt_dir = './data/ckpt/'
 _C.resume_path = ''
 _C.normal_path = ''

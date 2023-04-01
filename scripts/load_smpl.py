@@ -78,7 +78,7 @@ o3d.visualization.draw_geometries([pcd])
 # o3d.visualization.draw_geometries([poisson_mesh])
 
 
-data_path= '/home/yu/AMirror/ICON/data/cape_raw/00096/fit/shortlong_hips.000001.npz'
+data_path= '/home/yu/AMirror/ICON/data/cape_raw/00096/fit/shortlong_hips.000046.npz'
 points_dict = np.load(data_path)
 
 pose_body = points_dict['pose_body'].astype(np.float32)

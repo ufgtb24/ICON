@@ -69,14 +69,14 @@ with_light = False
 depth = False
 normal = True
 
-# print(f'render pid : {os.getpid()}')
+print(f'render pid : {os.getpid()}')
+input()
 # time.sleep()
 
 mesh_file = f'./data/{dataset}/{subject}/scans_ply/{seq}/{frame}'
-smplx_file = f'./data/{dataset}/{subject}/smplx/{seq}/{frame}.obj'
-# tex_file = f'./data/{dataset}/scans/{subject}/material0.jpeg'
-fit_file = f'./data/{dataset}/{subject}/fits/{seq}/{frame}/smplx_param.pkl'
-
+fit_last=os.path.splitext(frame)[0]+'.npz'
+fit_file = f'./data/{dataset}/{subject}/fit/{seq}/{fit_last}'
+# '/home/yu/AMirror/ICON/data/cape_raw/00096/fit/shortlong_hips.000001.npz'
 # mesh
 # mesh = trimesh.load(mesh_file, skip_materials=False,
 #                     process=False, maintain_order=True, force='mesh',file_type='ply')
@@ -109,7 +109,7 @@ smpl_face=np.loadtxt('/home/yu/AMirror/ICON/data/cape_raw/00096/fit/face_idx.txt
 # smpl_normals = trimesh.load(mesh_file, file_type='ply')
 
 
-smpl_vert, joints = load_smpl_body('/home/yu/AMirror/ICON/data/cape_raw/00096/fit/shortlong_hips.000001.npz',scale)
+smpl_vert, joints = load_smpl_body(fit_file,scale)
 # rescale_fitted_body, joints = load_fit_body(fit_file,
 #                                             scale,
 #                                             smpl_type='smplx',

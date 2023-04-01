@@ -39,7 +39,7 @@ class PIFuDataset():
     def __init__(self, cfg, split='train', vis=False):
 
         self.split = split
-        self.root = cfg.mesh_root
+        self.root = cfg.root
         self.bsize = cfg.batch_size
         self.overfit = cfg.overfit
 
@@ -98,10 +98,9 @@ class PIFuDataset():
 
             dataset_dir = osp.join(self.root, dataset)
 
-            if dataset in ['thuman2']:
-                mesh_dir = osp.join(dataset_dir, "scans")
-                smplx_dir = osp.join(dataset_dir, "fits")
-                smpl_dir = osp.join(dataset_dir, "smpl")
+            mesh_dir = osp.join(dataset_dir, "scans")
+            smplx_dir = osp.join(dataset_dir, "fits")
+            smpl_dir = osp.join(dataset_dir, "smpl")
 
             self.datasets_dict[dataset] = {
                 "subjects": np.loadtxt(osp.join(dataset_dir, "all.txt"), dtype=str),
@@ -189,10 +188,12 @@ class PIFuDataset():
         mid = index // len(self.rotations)
 
         rotation = self.rotations[rid]
+        frame = self.subject_list[mid].split("/")[3]
+        seq = self.subject_list[mid].split("/")[2]
         subject = self.subject_list[mid].split("/")[1]
         dataset = self.subject_list[mid].split("/")[0]
-        render_folder = "/".join([dataset +
-                                 f"_{self.opt.rotation_num}views", subject])
+        render_folder = "/".join([dataset,subject +
+                                 f"_{self.opt.rotation_num}views", seq,frame])
 
         # setup paths
         data_dict = {
