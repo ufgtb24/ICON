@@ -20,7 +20,7 @@ do
         for val2 in ${seq//,/ }
         do
             SEQ=$val2
-            bash scripts/render_single.sh 1 $DATASET 36 512 $MODE $SUBJECT $SEQ
+            bash scripts/render_single.sh 5 $DATASET 36 512 $MODE $SUBJECT $SEQ
             echo "$DATASET END----------"
         done
     done

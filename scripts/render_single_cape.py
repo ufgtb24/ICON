@@ -52,7 +52,7 @@ frame = args.frame
 save_folder = args.out_dir
 rotation = int(args.rotation)
 size = int(args.size)
-frame_num=frame.split('.')[1]
+frame_num=frame.split('/')[-1]
 # headless
 egl = True
 
@@ -69,13 +69,12 @@ with_light = False
 depth = False
 normal = True
 
-print(f'render pid : {os.getpid()}')
-input()
+# print(f'render pid : {os.getpid()}')
+# input()
 # time.sleep()
 
-mesh_file = f'./data/{dataset}/{subject}/scans_ply/{seq}/{frame}'
-fit_last=os.path.splitext(frame)[0]+'.npz'
-fit_file = f'./data/{dataset}/{subject}/fit/{seq}/{fit_last}'
+mesh_file = f'./data/{dataset}/{subject}/scans_ply/{seq}/{seq}.{frame_num}.ply'
+fit_file = f'./data/{dataset}/{subject}/fit/{seq}/{seq}.{frame_num}.npz'
 # '/home/yu/AMirror/ICON/data/cape_raw/00096/fit/shortlong_hips.000001.npz'
 # mesh
 # mesh = trimesh.load(mesh_file, skip_materials=False,
