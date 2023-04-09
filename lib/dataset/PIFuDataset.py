@@ -16,7 +16,7 @@
 # Contact: ps-license@tuebingen.mpg.de
 import os
 
-from lib.renderer.mesh import load_fit_body
+from lib.renderer.mesh import load_fit_body, load_smpl_body
 from lib.dataset.hoppeMesh import HoppeMesh
 from lib.dataset.body_model import TetraSMPLModel
 from lib.common.render import Render
@@ -89,26 +89,7 @@ class PIFuDataset():
         else:
             self.rotations = range(0, 360, 120)
 
-        self.datasets_dict = {}
 
-        for dataset_id, dataset in enumerate(self.datasets):
-
-            mesh_dir = None
-            smplx_dir = None
-
-            dataset_dir = osp.join(self.root, dataset)
-
-            mesh_dir = osp.join(dataset_dir, "scans")
-            smplx_dir = osp.join(dataset_dir, "fits")
-            smpl_dir = osp.join(dataset_dir, "smpl")
-
-            self.datasets_dict[dataset] = {
-                "subjects": np.loadtxt(osp.join(dataset_dir, "all.txt"), dtype=str),
-                "smplx_dir": smplx_dir,
-                "smpl_dir": smpl_dir,
-                "mesh_dir": mesh_dir,
-                "scale": self.scales[dataset_id]
-            }
 
         self.subject_list = self.get_subject_list(split)
         self.smplx = SMPLX()  # 没有参数的模板 存放在 smp_related
@@ -148,7 +129,7 @@ class PIFuDataset():
                 print(f"load from {split_txt}")
                 subject_list += np.loadtxt(split_txt, dtype=str).tolist()
             else:
-                full_txt = osp.join(self.root, dataset, 'all.txt')
+                full_txt = osp.join(self.root, dataset, 'train.txt')
                 print(f"split {full_txt} into train/val/test")
 
                 full_lst = np.loadtxt(full_txt, dtype=str)
@@ -192,20 +173,24 @@ class PIFuDataset():
         seq = self.subject_list[mid].split("/")[2]
         subject = self.subject_list[mid].split("/")[1]
         dataset = self.subject_list[mid].split("/")[0]
+        model_folder="/".join([dataset,subject, seq,frame])
         render_folder = "/".join([dataset,subject +
                                  f"_{self.opt.rotation_num}views", seq,frame])
 
+        dataset_dir = osp.join(self.root, dataset)
+
+        
         # setup paths
         data_dict = {
             'dataset': dataset,
             'subject': subject,
             'rotation': rotation,
-            'scale': self.datasets_dict[dataset]["scale"],
-            'mesh_path': osp.join(self.datasets_dict[dataset]["mesh_dir"], f"{subject}/{subject}.obj"),
-            'smplx_path': osp.join(self.datasets_dict[dataset]["smplx_dir"], f"{subject}/smplx_param.pkl"),
-            'smpl_path': osp.join(self.datasets_dict[dataset]["smpl_dir"], f"{subject}.pkl"),
+            'scale': 100.,
+            'mesh_path': osp.join(dataset_dir,subject,'scans_ply',seq, f"{seq}.{frame}.ply"),
+            'smpl_path': osp.join(dataset_dir,subject,'fit',seq, f"{seq}.{frame}.npz"),
+            
             'calib_path': osp.join(self.root, render_folder, 'calib', f'{rotation:03d}.txt'),
-            'vis_path': osp.join(self.root, render_folder, 'vis', f'{rotation:03d}.pt'),
+            'vis_path': osp.join(self.root, render_folder, 'vis', f'{rotation:03d}.txt'),
             'image_path': osp.join(self.root, render_folder, 'render', f'{rotation:03d}.png')
         }
 
@@ -270,19 +255,17 @@ class PIFuDataset():
         return {'calib': calib_mat}
 
     def load_mesh(self, data_dict):
-        mesh_path = data_dict['mesh_path']
-        scale = data_dict['scale']
-
-        mesh_ori = trimesh.load(mesh_path,
-                                skip_materials=True,
-                                process=False,
-                                maintain_order=True)
-        verts = mesh_ori.vertices * scale
-        faces = mesh_ori.faces
-
-        vert_normals = np.array(mesh_ori.vertex_normals)
-        face_normals = np.array(mesh_ori.face_normals)
-
+        mesh = trimesh.load(data_dict['mesh_path'], file_type='ply')
+    
+        # remove floating outliers of scans
+        mesh_lst = mesh.split(only_watertight=False)
+        comp_num = [mesh.vertices.shape[0] for mesh in mesh_lst]
+        mesh = mesh_lst[comp_num.index(max(comp_num))]
+    
+        verts = mesh.vertices / 1000.
+        faces = mesh.faces
+        vert_normals = np.array(mesh.vertex_normals)
+        face_normals = np.array(mesh.face_normals)
         mesh = HoppeMesh(verts, faces, vert_normals, face_normals)
 
         return {
@@ -327,30 +310,23 @@ class PIFuDataset():
         dataset = data_dict['dataset']
         smplx_dict = {}
         # fit 扫描模型的 smplx param 路径， 存放在 thuman2
-        smplx_param = np.load(data_dict['smplx_path'], allow_pickle=True)
-        smplx_pose = smplx_param["body_pose"]  # [1,63]
-        smplx_betas = smplx_param["betas"]  # [1,10]
-        smplx_pose, smplx_betas = self.add_noise(
-            smplx_betas.shape[1],
-            smplx_pose[0],
-            smplx_betas[0],
-            noise_type,
-            noise_scale,
-            type='smplx',
-            hashcode=(hash(f"{data_dict['subject']}_{data_dict['rotation']}")) % (10**8))
+        smplx_param = np.load(data_dict['smpl_path'], allow_pickle=True)
+        smplx_pose = smplx_param["pose_body"]  # [1,63]
 
-        smplx_out, _ = load_fit_body(fitted_path=data_dict['smplx_path'],
-                                     scale=self.datasets_dict[dataset]['scale'],
-                                     smpl_type='smplx',
-                                     smpl_gender='male',
-                                     noise_dict=dict(betas=smplx_betas, body_pose=smplx_pose))
+        smpl_vert, _ = load_smpl_body(data_dict['smpl_path'], 100.)
+       
+        # smplx_out, _ = load_fit_body(fitted_path=data_dict['smplx_path'],
+        #                              scale=self.datasets_dict[dataset]['scale'],
+        #                              smpl_type='smplx',
+        #                              smpl_gender='male',
+        #                              noise_dict=dict(betas=smplx_betas, body_pose=smplx_pose))
 
-        smplx_dict.update({"type": "smplx",
+        smplx_dict.update({"type": "smpl",
                           "gender": 'male',
                            "body_pose": torch.as_tensor(smplx_pose),
-                           "betas": torch.as_tensor(smplx_betas)})
+                           })
 
-        return smplx_out.vertices, smplx_dict
+        return smpl_vert, smplx_dict
 
     def compute_voxel_verts(self,
                             data_dict,
@@ -404,15 +380,15 @@ class PIFuDataset():
 
     def load_smpl(self, data_dict, vis=False):
         # 根据 pose 获得变形的顶点
-        smplx_verts, smplx_dict = self.compute_smpl_verts(
-            data_dict, self.noise_type,
-            self.noise_scale)  # compute using smpl model
+        smplx_verts, smplx_dict = self.compute_smpl_verts(data_dict)  # compute using smpl model
 
         smplx_verts = projection(smplx_verts, data_dict['calib']).float()
-        smplx_faces = torch.as_tensor(self.smplx.faces).long()
-        smplx_vis = torch.load(data_dict['vis_path']).float()
-        smplx_cmap = torch.as_tensor(
-            np.load(self.smplx.cmap_vert_path)).float()
+        smplx_faces = torch.as_tensor(self.smplx.faces).long() # done
+        smplx_vis = torch.load(data_dict['vis_path']).float() # change path outside
+
+        smplx_ind = self.smplx.smpl2smplx(np.arange(smplx_verts.shape[0]))
+        smplx_cmap = self.smplx.get_smpl_mat(smplx_ind)
+
 
         # get smpl_signs
         query_points = projection(data_dict['samples_geo'],

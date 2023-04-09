@@ -1,9 +1,13 @@
 import argparse
+import os
+
 from lib.common.config import get_cfg_defaults
 from lib.dataset.PIFuDataset import PIFuDataset
 
 if __name__ == '__main__':
-        
+    print(f'demo : {os.getpid()}')
+    input()
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-v',
                         '--show',
@@ -25,6 +29,7 @@ if __name__ == '__main__':
 
     args = get_cfg_defaults()
     args.merge_from_file(args_c.config)
+    args.freeze()
 
     dataset = PIFuDataset(args, split='train', vis=args_c.show)
     print(f"Number of subjects :{len(dataset.subject_list)}")

@@ -92,8 +92,9 @@ class ICON(pl.LightningModule):
         self.render = Render(
             size=512, device=torch.device(f"cuda:{self.cfg.test_gpus[0]}")
         )
+        # define the static parameters for the SMPL model
         self.smpl_data = SMPLX()
-
+        # use the static parameters to partially initialize the skinning SMPL model
         self.get_smpl_model = lambda smpl_type, gender, age, v_template: smplx.create(
             self.smpl_data.model_dir,
             kid_template_path=osp.join(
@@ -333,7 +334,7 @@ class ICON(pl.LightningModule):
 
     @torch.enable_grad()
     def optim_body(self, in_tensor_dict, batch):
-
+        # use specific parameters to initialize the skinning smpl model
         smpl_model = self.get_smpl_model(
             batch["type"][0], batch["gender"][0], batch["age"][0], None
         ).to(self.device)

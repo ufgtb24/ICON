@@ -1,8 +1,9 @@
 #!/bin/bash
 MODE=$1
-PART=$2
 # stringList=3dpeople,axyz,renderpeople,renderpeople_p27,humanalloy,thuman,thuman2
-stringList=thuman2
+stringList=cape_raw
+subject=00096
+seq=shortlong_hips
 
 # Use comma as separator and apply as pattern
 for val in ${stringList//,/ }
@@ -13,6 +14,14 @@ do
     # num_views = 36
     # MODE = gen (process all subjects) | debug (only one subject)
     # PART = filename of render_list
-    bash scripts/vis_single.sh 3 $DATASET 36 $MODE $PART
-    echo "$DATASET END----------"
+    for val1 in ${subject//,/ }
+    do
+        SUBJECT=$val1
+         for val2 in ${seq//,/ }
+        do
+            SEQ=$val2
+            bash scripts/vis_single.sh 5 $DATASET 36 $MODE $SUBJECT $SEQ
+            echo "$DATASET END----------"
+        done
+    done
 done

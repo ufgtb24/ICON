@@ -3,7 +3,8 @@ NUM_THREADS=$1
 DATASET=$2
 NUM_VIEWS=$3
 MODE=$4
-PART=$5
+SUBJECT=$5
+SEQ=$6
 
 PYTHON_SCRIPT="scripts/vis_single.py"
 
@@ -11,10 +12,10 @@ if [[ $MODE == "gen" ]]; then
     echo "processing all the subjects"
     # compute visibility for all the subjects
     LOG_FILE="./log/vis/${DATASET}-${NUM_VIEWS}-${PART}.txt"
-    SAVE_DIR="./data/${DATASET}_${NUM_VIEWS}views"
+    SAVE_DIR="./data/${DATASET}/${SUBJECT}_${NUM_VIEWS}views/$SEQ"
     mkdir -p $SAVE_DIR
     mkdir -p "./log/vis/"
-    cat ./data/$DATASET/$PART.txt | shuf | xargs -P$NUM_THREADS -I {} python $PYTHON_SCRIPT -s {} -o $SAVE_DIR -r $NUM_VIEWS -m $MODE> $LOG_FILE
+    cat ./data/$DATASET/$SUBJECT/$SEQ.txt | shuf | xargs -P$NUM_THREADS -I {} python $PYTHON_SCRIPT  -s $SUBJECT -q $SEQ -f {} -o $SAVE_DIR -r $NUM_VIEWS -m $MODE> $LOG_FILE
 fi
 
 if [[ $MODE == "debug" ]]; then

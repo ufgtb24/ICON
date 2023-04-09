@@ -838,7 +838,7 @@ class SMPLX():
         self.smplx_verts_path = osp.join(self.current_dir,
                                          "smpl_data/smplx_verts.npy")
         self.faces_path = osp.join(self.current_dir,
-                                   "smpl_data/smplx_faces.npy")
+                                   "smpl_data/smpl_faces.npy")
         self.cmap_vert_path = osp.join(self.current_dir,
                                        "smpl_data/smplx_cmap.npy")
 

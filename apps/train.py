@@ -87,12 +87,12 @@ if __name__ == "__main__":
         save_dir=cfg.results_path, name=cfg.name, default_hp_metric=False
     )
 
-    save_k =3
+    save_k =2
 
     if cfg.overfit:
         cfg_overfit_list = ["batch_size", 1]
         cfg.merge_from_list(cfg_overfit_list)
-        save_k = 3
+        save_k = 2
 
     checkpoint = ModelCheckpoint(
         dirpath=osp.join(cfg.ckpt_dir, cfg.name),
