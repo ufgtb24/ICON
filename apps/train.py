@@ -87,12 +87,12 @@ if __name__ == "__main__":
         save_dir=cfg.results_path, name=cfg.name, default_hp_metric=False
     )
 
-    save_k =2
+    save_k =1
 
     if cfg.overfit:
         cfg_overfit_list = ["batch_size", 1]
         cfg.merge_from_list(cfg_overfit_list)
-        save_k = 2
+        save_k = 1
 
     checkpoint = ModelCheckpoint(
         dirpath=osp.join(cfg.ckpt_dir, cfg.name),
@@ -151,11 +151,11 @@ if __name__ == "__main__":
         trainer_kwargs.update(
             {
                 # "log_every_n_steps": 10,
-                # "val_check_interval": 1.0
+                "val_check_interval": 1.0,
                 "log_every_n_steps": int(cfg.freq_plot * train_len / cfg.batch_size),
-                "val_check_interval": int(freq_eval * train_len / cfg.batch_size)
-                if freq_eval > 10
-                else freq_eval,
+                # "val_check_interval": int(freq_eval * train_len / cfg.batch_size)
+                # if freq_eval > 10
+                # else freq_eval,
             }
         )
 
